@@ -60,7 +60,7 @@ let listaPlatillos = [
  * 4. OPCIONAL (guardar el resumen en el LocalStorage)
  */
 
-// solución v1 (vigente): se crea un array con ids de platos del carrito
+// solución v0: se crea un segundo array que resume items del carrito (id, nombre, cantidad, precio...)
 let divContenido = document.getElementById("contenido")
 
 // agregar tarjetas de array[] al HTML
@@ -94,11 +94,11 @@ agregarTarjetas()
 
 // agregar items al carrito[]
 let carrito = []
-let carritoIds = []
+let itemsList = []
 
 function agregarAlCarrito() {
     let btnsAgregar = document.querySelectorAll(".btn-agregar")
-    // console.log(btnsAgregar)
+    console.log(btnsAgregar)
     btnsAgregar.forEach(function(boton){
         boton.addEventListener("click", function(){
             let idObtenido = boton.getAttribute("data-id")
@@ -124,49 +124,40 @@ function buscarPlatoPorID(id) {
 // función para agregar productos a tabla resumen
 function agregarAlResumen(platillo) {
     carrito.push(platillo)
-    carrito.forEach(function(item){
-        itemId = carritoIds.includes(item.id)
-        if (itemId === false ) {
-            carritoIds.push(item.id)
-        } 
-    })
-    // console.log(carritoIds)
-    mostrarResumen()
-}
 
-// mostrar resumen
-let tbodyCarrito = document.getElementById("tbody-carrito")
-let tbodyResumen = document.getElementById("tbody-resumen")
-function mostrarResumen() {
-    let htmlCompras = ""
-    let total = 0
-    carritoIds.forEach(function(id){
-        let plato = carrito.find(function(elemento){
-            return elemento.id === id
-        })
-        let carritoPorPlato = carrito.filter(function(elemento){
-            return elemento.id === id
+    carrito.forEach(function(item){
+        let carritoPorPlato = carrito.filter(function(plato){
+            return plato.id === item.id
         })
         let platoCantidad = carritoPorPlato.length
-        let platoSubtotal = platoCantidad * plato.precio
 
-        total += platoSubtotal
+        let platoIndex = itemsList.findIndex(function(producto){
+            return producto.nombre === item.nombre
+        })
+        if (platoIndex !== -1) {
+            itemsList[platoIndex].cantidad = platoCantidad
+            itemsList[platoIndex].subtotal = platoCantidad * item.precio
+        } else {
+            itemsList.push({id:item.id,nombre:item.nombre, cantidad: platoCantidad, precio: item.precio, subtotal: platoCantidad * item.precio} )
+        }
+    })
+    mostrarSeleccion()
+}
 
+// mostrar carrito
+let tbodyCarrito = document.getElementById("tbody-carrito")
+function mostrarSeleccion() {
+    let htmlCompras = ""
+    itemsList.forEach(function(item){
         htmlCompras = htmlCompras + 
-            `<tr>
-                <td>${plato.nombre}</td>
-                <td>${platoCantidad}</td>
-                <td>${plato.precio.toFixed(2)}</td>
-                <td>${platoSubtotal.toFixed(2)}</td>
-            </tr>`
+        `<tr>
+            <td>${item.nombre}</td>
+            <td>${item.cantidad}</td>
+            <td>${item.precio}</td>
+            <td>${item.subtotal}</td>
+        </tr>`
     })
     tbodyCarrito.innerHTML = htmlCompras
-    tbodyResumen.innerHTML = 
-        `<tr>
-            <td>TOTAL</td>
-            <td>S/ ${total.toFixed(2)} soles</td>
-        </tr>`
-
 }
 
 function guardarEnLS(){
